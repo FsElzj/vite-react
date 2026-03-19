@@ -320,11 +320,11 @@ export default function CalendarApp() {
     const calendarDays = getDaysForCalendar(calendarMonth.getFullYear(), calendarMonth.getMonth());
 
     return (
-        <div className="min-h-screen bg-slate-100 text-slate-800 font-sans flex justify-center py-6 md:py-10 px-4 sm:px-6">
-            <div className="max-w-6xl w-full flex flex-col md:flex-row gap-8">
+        <div className="min-h-screen bg-slate-100 text-slate-800 font-sans flex justify-center py-2 px-2 sm:py-6 sm:px-6 md:py-10">
+            <div className="max-w-6xl w-full flex flex-col md:flex-row gap-4 md:gap-8">
 
                 {/* PANEL IZQUIERDO: CALENDARIO MENSUAL */}
-                <div className="w-full md:w-[340px] shrink-0 bg-white shadow-xl shadow-slate-200/50 rounded-[2rem] border border-slate-200 p-7 h-fit relative">
+                <div className="w-full md:w-[340px] shrink-0 bg-white shadow-xl shadow-slate-200/50 rounded-2xl md:rounded-[2rem] border border-slate-200 p-4 sm:p-7 h-fit relative">
                     <div className="flex items-center justify-between mb-8">
                         <button onClick={goToToday} className="flex items-center gap-2 text-sm font-bold text-red-700 bg-red-50 hover:bg-red-100 py-1.5 px-4 rounded-full transition-all">
                             <CalendarIcon size={16} /> Hoy
@@ -379,49 +379,48 @@ export default function CalendarApp() {
                 </div>
 
                 {/* PANEL DERECHO: HORARIO DEL DÍA */}
-                <div className="flex-1 bg-white shadow-xl shadow-slate-200/50 rounded-[2rem] border border-slate-200 overflow-hidden flex flex-col h-[calc(100vh-3rem)] md:h-[calc(100vh-5rem)] max-h-[850px]">
+                <div className="flex-1 bg-white shadow-xl shadow-slate-200/50 rounded-2xl md:rounded-[2rem] border border-slate-200 overflow-hidden flex flex-col h-[calc(100vh-3rem)] md:h-[calc(100vh-5rem)] max-h-[850px]">
 
                     {/* Cabecera del día */}
-                    <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-black text-white p-8 pb-12 relative overflow-hidden shrink-0">
-                        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/5 blur-3xl"></div>
-                        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 rounded-full bg-blue-900/30 blur-2xl"></div>
+                    <div className="bg-slate-900 text-white p-5 sm:p-8 pb-6 sm:pb-8 relative shrink-0">
+                        <div className="flex items-start justify-between gap-4">
+                            <div>
+                                <h1 className="text-2xl sm:text-4xl font-black mb-1 sm:mb-2 tracking-tight">
+                                    {dayNames[selectedDate.getDay()]}, {selectedDate.getDate()} de {monthNames[selectedDate.getMonth()]}
+                                </h1>
+                                <p className="text-slate-400 font-medium flex items-center gap-2 text-sm sm:text-lg">
+                                    <CalendarIcon size={16} className="text-orange-500" />
+                                    {activeSchedule.length} actividades
+                                    <span className="ml-1" title={syncStatus === 'synced' ? 'Sincronizado' : syncStatus === 'syncing' ? 'Sincronizando...' : syncStatus === 'offline' ? 'Sin conexión' : ''}>
+                                        {syncStatus === 'syncing' && <Loader2 size={14} className="animate-spin text-orange-400" />}
+                                        {syncStatus === 'synced' && <Cloud size={14} className="text-green-400" />}
+                                        {syncStatus === 'offline' && <CloudOff size={14} className="text-red-400" />}
+                                    </span>
+                                </p>
+                            </div>
 
-                        <div className="relative z-10">
-                            <h1 className="text-4xl font-black mb-2 tracking-tight drop-shadow-sm">
-                                {dayNames[selectedDate.getDay()]}, {selectedDate.getDate()} de {monthNames[selectedDate.getMonth()]}
-                            </h1>
-                            <p className="text-slate-300 font-medium flex items-center gap-2 text-lg">
-                                <CalendarIcon size={18} className="opacity-80 text-orange-500" />
-                                {activeSchedule.length} actividades programadas
-                                <span className="ml-2" title={syncStatus === 'synced' ? 'Sincronizado' : syncStatus === 'syncing' ? 'Sincronizando...' : syncStatus === 'offline' ? 'Sin conexión' : ''}>
-                                    {syncStatus === 'syncing' && <Loader2 size={16} className="animate-spin text-orange-400" />}
-                                    {syncStatus === 'synced' && <Cloud size={16} className="text-green-400" />}
-                                    {syncStatus === 'offline' && <CloudOff size={16} className="text-red-400" />}
-                                </span>
-                            </p>
-                        </div>
-
-                        <div className="absolute -bottom-6 right-8 flex gap-4 z-20">
-                            {isEditedDay && (
+                            <div className="flex gap-2 shrink-0">
+                                {isEditedDay && (
+                                    <button
+                                        onClick={resetToDefault}
+                                        title="Restaurar horario original"
+                                        className="bg-white/10 text-white p-3 rounded-xl hover:bg-white/20 transition-all"
+                                    >
+                                        <RotateCcw size={20} />
+                                    </button>
+                                )}
                                 <button
-                                    onClick={resetToDefault}
-                                    title="Restaurar horario original"
-                                    className="bg-white text-slate-800 p-4 rounded-2xl shadow-xl hover:text-red-700 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 border border-slate-100"
+                                    onClick={openAddModal}
+                                    className="bg-red-600 text-white p-3 rounded-xl shadow-lg hover:bg-red-700 transition-all"
                                 >
-                                    <RotateCcw size={22} />
+                                    <Plus size={24} strokeWidth={3} />
                                 </button>
-                            )}
-                            <button
-                                onClick={openAddModal}
-                                className="bg-red-700 text-white p-4 rounded-2xl shadow-xl shadow-red-900/30 hover:bg-red-800 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300"
-                            >
-                                <Plus size={28} strokeWidth={3} />
-                            </button>
+                            </div>
                         </div>
                     </div>
 
                     {/* Lista de Tareas */}
-                    <div className="flex-1 overflow-y-auto p-6 md:p-8 pt-12">
+                    <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
                         {activeSchedule.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-slate-400">
                                 <div className="bg-slate-50 p-6 rounded-[2rem] mb-6 shadow-inner border border-slate-100">
@@ -434,47 +433,47 @@ export default function CalendarApp() {
                                 </button>
                             </div>
                         ) : (
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 {activeSchedule.map(task => {
                                     const style = getTaskStyle(task.title);
                                     return (
                                         <div
                                             key={task.id}
-                                            className={`group relative flex items-center justify-between p-5 rounded-2xl transition-all duration-300 ${
+                                            className={`group relative flex items-center justify-between p-3 sm:p-5 rounded-xl sm:rounded-2xl transition-all duration-300 ${
                                                 task.completed
                                                 ? 'bg-slate-50 opacity-50 grayscale border-transparent'
                                                 : 'bg-white border-slate-200 hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 hover:border-slate-300'
                                             } border-2`}
                                         >
-                                            <div className={`absolute left-0 top-3 bottom-3 w-2 rounded-r-full transition-all duration-300 ${task.completed ? 'bg-slate-300' : style.bg}`} />
+                                            <div className={`absolute left-0 top-3 bottom-3 w-1.5 sm:w-2 rounded-r-full transition-all duration-300 ${task.completed ? 'bg-slate-300' : style.bg}`} />
 
-                                            <div className="flex items-center gap-5 flex-1 pl-4">
+                                            <div className="flex items-center gap-3 sm:gap-5 flex-1 pl-3 sm:pl-4">
                                                 <button
                                                     onClick={() => toggleTask(task.id)}
-                                                    className={`shrink-0 transition-all duration-300 hover:scale-110 ${task.completed ? 'text-black' : 'text-slate-300 hover:text-slate-900'}`}
+                                                    className={`shrink-0 transition-all duration-300 active:scale-95 ${task.completed ? 'text-black' : 'text-slate-300 hover:text-slate-900'}`}
                                                 >
-                                                    {task.completed ? <CheckCircle2 size={32} /> : <Circle size={32} strokeWidth={2.5} />}
+                                                    {task.completed ? <CheckCircle2 size={26} className="sm:w-8 sm:h-8" /> : <Circle size={26} strokeWidth={2.5} className="sm:w-8 sm:h-8" />}
                                                 </button>
 
                                                 <div className="flex-1 min-w-0">
-                                                    <h3 className={`font-black text-lg truncate transition-all ${task.completed ? 'line-through text-slate-500' : 'text-slate-900'}`}>
+                                                    <h3 className={`font-black text-base sm:text-lg truncate transition-all ${task.completed ? 'line-through text-slate-500' : 'text-slate-900'}`}>
                                                         {task.title}
                                                     </h3>
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        <span className={`flex items-center gap-1.5 text-sm font-bold px-2.5 py-0.5 rounded-md ${task.completed ? 'bg-slate-200 text-slate-500' : `${style.lightBg} ${style.text}`}`}>
-                                                            <Clock size={14} />
+                                                    <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
+                                                        <span className={`flex items-center gap-1 text-xs sm:text-sm font-bold px-2 py-0.5 rounded-md ${task.completed ? 'bg-slate-200 text-slate-500' : `${style.lightBg} ${style.text}`}`}>
+                                                            <Clock size={12} />
                                                             {formatTimeDisplay(task.startTime)} - {formatTimeDisplay(task.endTime)}
                                                         </span>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div className="flex gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 md:translate-x-4 group-hover:translate-x-0 ml-4">
-                                                <button onClick={() => openEditModal(task)} className="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors">
-                                                    <Edit2 size={18} strokeWidth={2.5} />
+                                            <div className="flex gap-1 sm:gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-all duration-300 ml-2 sm:ml-4">
+                                                <button onClick={() => openEditModal(task)} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg sm:rounded-xl transition-colors">
+                                                    <Edit2 size={16} strokeWidth={2.5} />
                                                 </button>
-                                                <button onClick={() => deleteTask(task.id)} className="p-2.5 text-slate-400 hover:text-white hover:bg-red-700 rounded-xl transition-colors">
-                                                    <Trash2 size={18} strokeWidth={2.5} />
+                                                <button onClick={() => deleteTask(task.id)} className="p-2 text-slate-400 hover:text-white hover:bg-red-700 rounded-lg sm:rounded-xl transition-colors">
+                                                    <Trash2 size={16} strokeWidth={2.5} />
                                                 </button>
                                             </div>
                                         </div>
@@ -488,8 +487,8 @@ export default function CalendarApp() {
 
             {/* MODAL */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-[2rem] shadow-2xl shadow-black/50 w-full max-w-md overflow-hidden border border-slate-100">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 z-50">
+                    <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl shadow-black/50 w-full sm:max-w-md overflow-hidden border border-slate-100">
                         <div className="flex justify-between items-center p-6 border-b border-slate-100">
                             <h2 className="text-2xl font-black text-slate-900 tracking-tight">
                                 {modalMode === 'add' ? 'Nueva Actividad' : 'Editar Actividad'}
