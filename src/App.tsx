@@ -320,7 +320,7 @@ export default function CalendarApp() {
     const calendarDays = getDaysForCalendar(calendarMonth.getFullYear(), calendarMonth.getMonth());
 
     return (
-        <div className="min-h-screen bg-slate-100 text-slate-800 font-sans flex justify-center py-2 px-2 sm:py-6 sm:px-6 md:py-10">
+        <div className="min-h-[100dvh] bg-slate-100 text-slate-800 font-sans flex justify-center py-2 px-2 sm:py-6 sm:px-6 md:py-10">
             <div className="max-w-6xl w-full flex flex-col md:flex-row gap-4 md:gap-8">
 
                 {/* PANEL IZQUIERDO: CALENDARIO MENSUAL */}
@@ -379,7 +379,7 @@ export default function CalendarApp() {
                 </div>
 
                 {/* PANEL DERECHO: HORARIO DEL DÍA */}
-                <div className="flex-1 bg-white shadow-xl shadow-slate-200/50 rounded-2xl md:rounded-[2rem] border border-slate-200 overflow-hidden flex flex-col h-[calc(100vh-3rem)] md:h-[calc(100vh-5rem)] max-h-[850px]">
+                <div className="flex-1 bg-white shadow-xl shadow-slate-200/50 rounded-2xl md:rounded-[2rem] border border-slate-200 overflow-hidden flex flex-col min-h-[60dvh] md:h-[calc(100vh-5rem)] md:max-h-[850px]">
 
                     {/* Cabecera del día */}
                     <div className="bg-slate-900 text-white p-5 sm:p-8 pb-6 sm:pb-8 relative shrink-0">
