@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     ChevronLeft,
     ChevronRight,
@@ -11,8 +11,12 @@ import {
     RotateCcw,
     X,
     Clock,
-    Sparkles
+    Sparkles,
+    Cloud,
+    CloudOff,
+    Loader2
 } from 'lucide-react';
+import { supabase } from './lib/supabase';
 
 // --- PLANTILLAS PREDETERMINADAS ---
 const defaultTemplates: Record<number, { startTime: string; endTime: string; title: string }[]> = {
@@ -170,18 +174,75 @@ export default function CalendarApp() {
     const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
     const [currentTask, setCurrentTask] = useState<Task>({ id: '', title: '', startTime: '12:00', endTime: '13:00', completed: false });
 
+    // --- SUPABASE SYNC ---
+    const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'offline'>('idle');
+    const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const isInitialLoad = useRef(true);
+
+    // Load all schedules from Supabase on mount
     useEffect(() => {
-        const saved = localStorage.getItem('myCustomCalendar');
-        if (saved) {
-            try { setUserSchedules(JSON.parse(saved)); } catch (e) { console.error("Error loading calendar data", e); }
+        const loadFromSupabase = async () => {
+            setSyncStatus('syncing');
+            try {
+                const { data, error } = await supabase
+                    .from('day_schedules')
+                    .select('date, tasks');
+                if (error) throw error;
+
+                const schedules: Record<string, Task[]> = {};
+                for (const row of data || []) {
+                    schedules[row.date] = row.tasks as Task[];
+                }
+                setUserSchedules(schedules);
+                localStorage.setItem('myCustomCalendar', JSON.stringify(schedules));
+                setSyncStatus('synced');
+            } catch (e) {
+                console.warn('Supabase load failed, using localStorage fallback', e);
+                const saved = localStorage.getItem('myCustomCalendar');
+                if (saved) {
+                    try { setUserSchedules(JSON.parse(saved)); } catch { /* ignore */ }
+                }
+                setSyncStatus('offline');
+            }
+            isInitialLoad.current = false;
+        };
+        loadFromSupabase();
+    }, []);
+
+    // Debounced save to Supabase when userSchedules changes
+    const syncToSupabase = useCallback(async (schedules: Record<string, Task[]>) => {
+        setSyncStatus('syncing');
+        try {
+            // Upsert all changed dates
+            const rows = Object.entries(schedules).map(([date, tasks]) => ({
+                date,
+                tasks,
+            }));
+
+            if (rows.length > 0) {
+                const { error } = await supabase
+                    .from('day_schedules')
+                    .upsert(rows, { onConflict: 'date' });
+                if (error) throw error;
+            }
+            setSyncStatus('synced');
+        } catch (e) {
+            console.warn('Supabase save failed', e);
+            setSyncStatus('offline');
         }
     }, []);
 
     useEffect(() => {
-        if (Object.keys(userSchedules).length > 0) {
-            localStorage.setItem('myCustomCalendar', JSON.stringify(userSchedules));
-        }
-    }, [userSchedules]);
+        if (isInitialLoad.current) return;
+        // Always save to localStorage immediately
+        localStorage.setItem('myCustomCalendar', JSON.stringify(userSchedules));
+
+        // Debounced Supabase sync (500ms)
+        if (saveTimeout.current) clearTimeout(saveTimeout.current);
+        saveTimeout.current = setTimeout(() => {
+            syncToSupabase(userSchedules);
+        }, 500);
+    }, [userSchedules, syncToSupabase]);
 
     const dateKey = formatDate(selectedDate);
     const activeSchedule = userSchedules[dateKey] || getBaseSchedule(selectedDate);
@@ -251,6 +312,8 @@ export default function CalendarApp() {
                 localStorage.setItem('myCustomCalendar', JSON.stringify(copy));
                 return copy;
             });
+            // Also delete from Supabase
+            supabase.from('day_schedules').delete().eq('date', dateKey).then();
         }
     };
 
@@ -330,6 +393,11 @@ export default function CalendarApp() {
                             <p className="text-slate-300 font-medium flex items-center gap-2 text-lg">
                                 <CalendarIcon size={18} className="opacity-80 text-orange-500" />
                                 {activeSchedule.length} actividades programadas
+                                <span className="ml-2" title={syncStatus === 'synced' ? 'Sincronizado' : syncStatus === 'syncing' ? 'Sincronizando...' : syncStatus === 'offline' ? 'Sin conexión' : ''}>
+                                    {syncStatus === 'syncing' && <Loader2 size={16} className="animate-spin text-orange-400" />}
+                                    {syncStatus === 'synced' && <Cloud size={16} className="text-green-400" />}
+                                    {syncStatus === 'offline' && <CloudOff size={16} className="text-red-400" />}
+                                </span>
                             </p>
                         </div>
 
